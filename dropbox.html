@@ -1,0 +1,83 @@
+<html>
+<body>
+<div id="bookreportsroot"></div>
+
+<script>
+
+var files;
+
+loadFiles();
+
+function loadFiles()
+{
+	
+	const url = 'https://api.dropboxapi.com/2/files/list_folder';
+	const data = '{"path":"/book reviews"}';
+
+	fetch(url, data, onDidLoad);
+}
+
+function download(index)
+{
+	var newWindow = window.open();
+	var file = files.entries[index];
+
+
+	const url = "https://api.dropboxapi.com/2/sharing/get_file_metadata";
+	const data = '{"file": "' + file.path_lower + '" }';
+
+	const callback = function (e) {
+		var response = e.currentTarget;
+		if (response.readyState == 4 && response.status == 200)
+		{
+			var data = JSON.parse(response.responseText);
+
+			newWindow.location = data.preview_url;
+		}
+	};
+
+	fetch(url, data, callback);
+
+}
+
+function onDidLoad(e)
+{
+	var response = e.currentTarget;
+
+	if (response.readyState == 4 && response.status == 200)
+	{
+		files = JSON.parse(response.responseText);
+		var rootElement = document.getElementById("bookreportsroot");
+
+		for (var i = 0; i < files.entries.length; i++) {
+			let index = i;
+			var file = files.entries[i];
+
+			var fileLink = document.createElement("a");
+			fileLink.onclick = function() { download(index); };
+			fileLink.style.display = "inline-block";
+			fileLink.style.textDecoration = "underline";
+			fileLink.style.cursor = "pointer";
+			fileLink.innerText = file.name;
+
+			rootElement.appendChild(fileLink);
+		} 
+	}
+}
+
+function fetch(url, data, callback)
+{	
+	var token = 'TLPUk3is8pAAAAAAAAAAFovPRRnwX3VDd2ikodM4d629VMTN8UpvqqTJoYboVFII';
+	const Http = new XMLHttpRequest();
+	
+	Http.open("POST", url);
+	Http.setRequestHeader('Authorization', 'Bearer ' + token);
+	Http.setRequestHeader('Content-Type', 'application/json');
+	Http.send(data);
+
+	Http.onreadystatechange = callback;
+}
+
+</script>
+</body>
+</html>
